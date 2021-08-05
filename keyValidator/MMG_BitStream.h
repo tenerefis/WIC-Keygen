@@ -25,9 +25,9 @@ protected:
 public:
 	MMG_BitStream(uint theRawBufferLengthInBits)
 	{
-		this->m_Position = 0;
-		this->m_MaxLength = theRawBufferLengthInBits;
-		this->m_Status = StreamStatus::NoChange;
+		this->m_Position	= 0;
+		this->m_MaxLength	= theRawBufferLengthInBits;
+		this->m_Status		= StreamStatus::NoChange;
 	}
 
 private:
@@ -47,9 +47,9 @@ private:
 public:
 	MMG_BitReader(const T *theRawBuffer, uint theRawBufferLengthInBits) : MMG_BitStream(theRawBufferLengthInBits)
 	{
-		this->m_BufferLength = theRawBufferLengthInBits;
-		this->m_ReadBuffer = theRawBuffer;
-
+		this->m_BufferLength	= theRawBufferLengthInBits;
+		this->m_ReadBuffer		= theRawBuffer;
+		
 		// Buffer bit length must divide evenly into bytes
 		assert(theRawBufferLengthInBits / 8 >= sizeof(T));
 
@@ -62,9 +62,9 @@ public:
 		if (theNumBits == 1)
 		{
 			// Read a single bit
-			T value = this->myReadBuffer[this->m_Position / TypeSizeInBits];
-			uint mask = TypeMask(this->m_Position);
-
+			T value		= this->m_ReadBuffer[this->m_Position / TypeSizeInBits];
+			uint mask	= TypeMask(this->m_Position);
+			
 			this->m_Position += 1;
 
 			if (this->m_Position == this->m_MaxLength)
@@ -79,21 +79,21 @@ public:
 			if ((this->m_Position / TypeSizeInBits) == ((this->m_Position + theNumBits - 1) / TypeSizeInBits))
 			{
 				// Read X bits now as they fit into a single array index
-				T value = this->myReadBuffer[this->m_Position / TypeSizeInBits];
-				uint mask = TypeMask(this->m_Position);
+				T value		= this->m_ReadBuffer[this->m_Position / TypeSizeInBits];
+				uint mask	= TypeMask(this->m_Position);
 
 				this->m_Position += theNumBits;
 
 				if (this->m_Position == this->m_MaxLength)
 					this->m_Status = StreamStatus::EndOfStream;
 
-				return ((((1 << theNumBits) - 1) << mask) & value) >> TypeMask(this->m_Position);
+				return ((((1 << theNumBits) - 1) << mask) & value) >> mask;
 			}
 			else
 			{
 				// Read multiple because it spans across array indexes
-				uint pos = this->m_Position + theNumBits;
-				uint firstHalf = theNumBits - TypeMask(pos);
+				uint pos		= this->m_Position + theNumBits;
+				uint firstHalf	= theNumBits - TypeMask(pos);
 				uint secondHalf = TypeMask(pos);
 
 				return this->ReadBits(firstHalf) | (this->ReadBits(secondHalf) << firstHalf);
@@ -126,15 +126,14 @@ private:
 public:
 	MMG_BitWriter(T *theDestBuffer, uint theDestBufferLengthInBits) : MMG_BitStream(theDestBufferLengthInBits)
 	{
-		this->m_BufferLength = theDestBufferLengthInBits;
-		this->m_DestBuffer = theDestBuffer;
+		this->m_BufferLength	= theDestBufferLengthInBits;
+		this->m_DestBuffer		= theDestBuffer;
 	}
 
 	void WriteBits(T theValue, T theNumBits)
 	{
 		if (theNumBits == 1)
 		{
-		writeSingleBit:
 			T bitSetMask = 1 << TypeMask(this->m_Position);
 
 			if (theValue & 1)
@@ -153,27 +152,27 @@ public:
 
 			while (1)
 			{
-				v5 = this->m_Position;
-				v6 = theNumBits;
-				v8 = this->m_Position / TypeSizeInBits;
+				v5	= this->m_Position;
+				v6	= theNumBits;
+				v8	= this->m_Position / TypeSizeInBits;
 				pos = theNumBits + this->m_Position;
 
 				if (v8 == ((pos - 1) / TypeSizeInBits))
 					break;
 
-				theNumBits = TypeMask(pos);
-				T firstHalf = v6 - TypeMask(pos);
+				theNumBits	= TypeMask(pos);
+				T firstHalf	= v6 - TypeMask(pos);
 
 				this->WriteBits(theValue, firstHalf);
 
 				theValue >>= firstHalf;
 
 				if (theNumBits == 1)
-					goto writeSingleBit;
+					return this->WriteBits(theValue, 1);
 			}
 
-			this->m_DestBuffer[v8] = (theValue << TypeMask(v5)) | this->m_DestBuffer[v8] & ~(((1 << theNumBits) - 1) << TypeMask(v5));
-			this->m_Position += theNumBits;
+			this->m_DestBuffer[v8]	= (theValue << TypeMask(v5)) | this->m_DestBuffer[v8] & ~(((1 << theNumBits) - 1) << TypeMask(v5));
+			this->m_Position		+= theNumBits;
 		}
 
 		if (this->m_Position == this->m_MaxLength)

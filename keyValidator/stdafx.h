@@ -16,6 +16,7 @@ typedef unsigned __int64	uint64;
 typedef unsigned long		ulong;
 typedef void				*voidptr_t;
 
+#include "MC_MTwister.h"
 #include "MMG_BitStream.h"
 #include "MMG_CryptoHash.h"
 #include "MMG_Tiger.h"

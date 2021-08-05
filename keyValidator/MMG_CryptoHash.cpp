@@ -26,6 +26,6 @@ void MMG_CryptoHash::SetHash(voidptr_t theHash, uint theByteLength, HashAlgorith
 
 unsigned int MMG_CryptoHash::Get32BitSubset()
 {
-	assert(myHashLength >= 4);
+	assert(this->m_HashLength >= 4);
 	return this->m_Hash[0];
 }
