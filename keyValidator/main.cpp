@@ -13,13 +13,9 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 WCHAR szBtnGenerate[MAX_LOADSTRING];
 WCHAR szBtnQuit[MAX_LOADSTRING];
 
-HWND hWnd;
 HWND hWndTextbox;
 HWND hWndGenerate;
 HWND hWndQuit;
-
-HFONT hFont;
-LOGFONT lf;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -108,7 +104,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   HWND hWnd = CreateWindowEx(WS_EX_CONTROLPARENT, szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
       CW_USEDEFAULT, 0, 350, 120, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
@@ -122,7 +118,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    SetWindowPos(hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 
    // create form objects
-   hWndTextbox = CreateWindowW(L"EDIT", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
+   hWndTextbox = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", NULL, WS_TABSTOP | WS_CHILD | WS_VISIBLE | ES_LEFT | ES_AUTOHSCROLL,
 	   10,
 	   20,
 	   220,
@@ -142,7 +138,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 	   NULL);   // Pointer not needed.
 
-   hWndQuit = CreateWindowW(L"BUTTON", szBtnQuit, WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+   hWndQuit = CreateWindowW(L"BUTTON", szBtnQuit, WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
 	   240,
 	   45,
 	   80,
@@ -153,6 +149,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   NULL);
 
    // setup font object
+   HFONT hFont;
+   LOGFONT lf;
+   
    GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
    hFont = CreateFont(lf.lfHeight, lf.lfWidth,
 	   lf.lfEscapement, lf.lfOrientation, lf.lfWeight,
@@ -164,6 +163,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    SendMessage(hWndTextbox, WM_SETFONT, (WPARAM)hFont, TRUE);
    SendMessage(hWndGenerate, WM_SETFONT, (WPARAM)hFont, TRUE);
    SendMessage(hWndQuit, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+   SetFocus(hWndGenerate);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -183,7 +184,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
 	// cdkey buffer
 	char key[26] = "------------------------";
 
